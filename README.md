@@ -1,4 +1,4 @@
-# weap-v1.0.1
+# weap-v1.0.0
 # WEAP: Whole Exome Analysis Pipeline
 
 
