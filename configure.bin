@@ -1,0 +1,88 @@
+#! /usr/bin/bash
+printf "Enter the full path to keep the required dependency tools (Avoid the last '"/"'):"
+read directory
+echo -e "\n"
+echo "The tools will be saved in this directory: "$directory
+sudo chmod 777 $directory
+
+chmod 777 $PWD
+chmod 777 ./
+chmod 777 ./bin/weap_bin
+
+echo $directory >./path
+
+echo -e "Downloading Axel for faster downloading than ever !"
+sudo apt-get install -y axel
+sudo apt install jq
+
+#Download GATK[Latest]
+
+# GitHub API URL for the latest GATK release
+API_URL="https://api.github.com/repos/broadinstitute/gatk/releases/latest"
+
+# Get the latest release version (e.g., "4.5.0.0") using curl and jq
+LATEST_VERSION=$(curl -s $API_URL | jq -r '.tag_name')
+
+# Check if we got a valid version number
+if [[ -z "$LATEST_VERSION" ]]; then
+  echo "Error: Could not retrieve the latest release version."
+  exit 1
+fi
+
+# Construct the download URL based on the version number
+DOWNLOAD_URL="https://github.com/broadinstitute/gatk/releases/download/$LATEST_VERSION/gatk-$LATEST_VERSION.zip"
+
+# Download the latest version using axel
+echo "Downloading GATK version $LATEST_VERSION from $DOWNLOAD_URL"
+axel -n 30 "$DOWNLOAD_URL" -o $directory
+
+
+
+
+unzip $directory/gatk-4*.zip -d $directory/ && rm $directory/gatk-4*.zip
+sudo chmod 777 $directory/gatk-4*/*
+
+#BWA-MEM2
+axel -n 10 https://github.com/bwa-mem2/bwa-mem2/releases/download/v2.2.1/bwa-mem2-2.2.1_x64-linux.tar.bz2 -o $directory/
+tar -jxf $directory/bwa-mem2-2.2.1_x64-linux.tar.bz2
+mv bwa-mem2-2.2.1_x64-linux $directory/
+
+
+#Download PICARD Tools
+mkdir $directory/picard/
+axel https://github.com/broadinstitute/picard/releases/download/2.26.2/picard.jar -o $directory/picard/
+sudo chmod 777 $directory/picard/*
+
+
+
+##Tools to be installed to avoid complexity
+sudo apt-get install -y bcftools
+sudo apt-get install -y samtools
+sudo apt-get install -y parallel
+sudo apt-get install -y python-is-python3
+sudo apt-get install tabix
+sudo apt install python3-pip
+pip3 install bgzip
+sudo apt install -y default-jdk
+sudo apt-get install -y openjdk-18-jdk
+
+
+
+clear
+echo "\n\n"
+echo "IMPORTANT: It is advisable to download Annovar from '"https://www.openbioinformatics.org/annovar/annovar_download_form.php"' by registering using institutional email ID. Upon registration, paste the link in susequent step."
+echo "Please cite ANNOVAR paper in your publication: Wang K, Li M, Hakonarson H. ANNOVAR: Functional annotation of genetic variants from next-generation sequencing data, Nucleic Acids Research, 38:e164, 2010"
+printf "Press Enter for Next step to paste the link:"
+read a
+printf "Enter the annovar URL recieved after registration:"
+read url
+axel -n 50 $url -o $directory/
+tar -xzf $directory/*.tar.gz
+mv annovar $directory
+chmod 777 ./annovar/*
+rm $directory/*.gz
+rm $directory/*.bz2
+echo -e "Done!\n\n"
+printf "Enter to exit!"
+read a
+exit
